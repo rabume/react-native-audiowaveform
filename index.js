@@ -4,7 +4,7 @@
  */
 
 "use strict";
-import { useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import { Platform, processColor, DeviceEventEmitter, requireNativeComponent } from "react-native";
 
 import resolveAssetSource from "react-native/Libraries/Image/resolveAssetSource";
@@ -12,19 +12,18 @@ import resolveAssetSource from "react-native/Libraries/Image/resolveAssetSource"
 
 const OGWaverformView = requireNativeComponent("OGWave", WaveForm);
 
+const _makeid = () => {
+  var text = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  for (var i = 0; i < 5; i++) text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+  return text;
+}
 
 const WaveForm = (props: WaveObjectPropsType) => {
   const { source, onPress, waveFormStyle, onFinishPlay } = props;
-  const [componentID, setComponentID] = useState('');
-
-  const _makeid = () => {
-    var text = "";
-    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-    for (var i = 0; i < 5; i++) text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-    return text;
-  }
+  const [componentID, setComponentID] = useState(_makeid());
 
   const _onPress = (e) => {
     const event = Platform.OS === "ios" ? e.nativeEvent : e;
@@ -33,18 +32,19 @@ const WaveForm = (props: WaveObjectPropsType) => {
     }
   }
 
-  const _onFinishPlay = (e) => {
-    const event = Platform.OS === "ios" ? e.nativeEvent : e;
-    if (event.componentID === componentID && onFinishPlay) {
-      onFinishPlay(event);
-    }
-  }
+  const _onFinishPlay = useCallback(
+      (e) => {
+        const event = Platform.OS === "ios" ? e.nativeEvent : e;
+        if (event.componentID === componentID && onFinishPlay) {
+          onFinishPlay(event);
+        }
+      },
+      [componentID, onFinishPlay]
+  );
 
   useEffect(() => {
     DeviceEventEmitter.addListener("OGOnPress", _onPress);
     DeviceEventEmitter.addListener("OGFinishPlay", _onFinishPlay);
-    const componentID = _makeid();
-    setComponentID(componentID);
   }, []);
 
   const assetResoved = resolveAssetSource(source) || {};
