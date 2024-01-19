@@ -15,7 +15,7 @@ const OGWaverformView = requireNativeComponent("OGWave", WaveForm);
 
 const WaveForm = (props: WaveObjectPropsType) => {
   const { source, onPress, waveFormStyle, onFinishPlay } = props;
-  const [componentID, setComponentID] = useState<string>();
+  const [componentID, setComponentID] = useState<string>('');
 
   const _makeid = () => {
     var text = "";
